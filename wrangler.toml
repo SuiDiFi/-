@@ -1,11 +1,8 @@
 # Cloudflare Pages 配置文件
-# 部署时选择 "Static HTML" 框架预设
 
-[build]
-command = ""
-publish = "."
-functions = "functions"
+pages_build_output_dir = "."
+pages_functions_dir = "functions"
 
-[env]
+[vars]
 DASHSCOPE_API_KEY = "sk-ws-H.RELXYEY.Ad7O.MEUCIBy4na3T87NfUuSql9y80MoV8ErdhM8wISt2F59Mr6hiAiEA8c-hxdpYpxyOyFTbLVR89gkMMB5agyUHbnSGtp2MghY"
 VOLC_API_KEY = "ark-6ffdce0b-648e-47b5-8682-7b7f18179522-5ba2a"

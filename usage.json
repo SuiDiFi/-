@@ -257,12 +257,12 @@
     "qwen3-coder-plus": {
       "provider": "dashscope",
       "daily_limit": 1000000,
-      "tokens_used": 0,
-      "calls": 0,
-      "last_call": null,
+      "tokens_used": 37,
+      "calls": 1,
+      "last_call": "2026-06-15 16:24:50",
       "blocked": false,
       "block_reason": null,
-      "avg_output_tokens": 0,
+      "avg_output_tokens": 8,
       "_output_accum": 0
     },
     "qwen-vl-ocr-1028": {
