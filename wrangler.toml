@@ -1,7 +1,6 @@
-# Cloudflare Pages 配置文件
+name = "duoreimi"
 
 pages_build_output_dir = "."
-pages_functions_dir = "functions"
 
 [vars]
 DASHSCOPE_API_KEY = "sk-ws-H.RELXYEY.Ad7O.MEUCIBy4na3T87NfUuSql9y80MoV8ErdhM8wISt2F59Mr6hiAiEA8c-hxdpYpxyOyFTbLVR89gkMMB5agyUHbnSGtp2MghY"
