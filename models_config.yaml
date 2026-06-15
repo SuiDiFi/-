@@ -1,0 +1,270 @@
+global:
+  api_keys:
+    volc_ark: ${VOLC_API_KEY}
+    dashscope: ${DASHSCOPE_API_KEY}
+  soft_threshold_pct: 90
+  hard_threshold_pct: 97
+  safety_buffer_pct: 5
+  default_estimated_output_tokens: 1500
+  timezone: Asia/Shanghai
+  persistent_file: usage.json
+
+# 火山方舟 - 文本模型（每日 500,000 tokens）
+volc_text_500k:
+  daily_limit: 500000
+  base_weight: 1.0
+  priority: 2
+  endpoint: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+  provider: volc_ark
+  models:
+    - DeepSeek-V4-flash
+    - DeepSeek-V4-pro
+    - Doubao-Seed-1.8
+    - Doubao-Seed-2.0-lite
+    - Doubao-Seed-2.0-mini
+    - Doubao-Seed-2.0-pro
+    - GLM-4.7
+    - DeepSeek-V3.2
+    - Doubao-Seed-1.6-lite
+    - DeepSeek-V3.1
+    - Kimi-K2
+    - Doubao-Seed-1.6-flash
+    - Doubao-Seed-1.6
+    - Doubao-1.5-lite-32k
+    - Doubao-1.5-pro-32k
+    - DeepSeek-V3
+    - Doubao-1.5-pro-256k
+    - Doubao-pro-256k
+    - Doubao-pro-4k
+    - Doubao-pro-32k
+    - Doubao-pro-128k
+    - Doubao-lite-4k
+    - Doubao-lite-32k
+    - Doubao-lite-128k
+    - Doubao-Seed-1.6-thinking
+    - Doubao-1.5-thinking-pro
+    - DeepSeek-R1-Distill-Qwen-32B
+    - DeepSeek-R1-Distill-Qwen-7B
+    - DeepSeek-R1
+    - Doubao-Seed-2.0-Code
+    - Doubao-Seed-Code
+    - Doubao-Seed-1.6-vision
+    - Doubao-1.5-vision-pro
+    - Doubao-1.5-vision-lite
+    - Doubao-1.5-thinking-vision-pro
+    - Doubao-1.5-vision-pro-32k
+    - Doubao-vision-pro-32k
+    - Doubao-vision-lite-32k
+    - Doubao-Seed-Translation
+    - Doubao-1.5-UI-TARS
+    - Doubao-Seed-Character
+
+# 火山方舟 - 图像/3D 模型（不同额度，按需开启）
+volc_image_2m:
+  daily_limit: 2000000
+  base_weight: 0.8
+  priority: 3
+  endpoint: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+  provider: volc_ark
+  disabled: true   # 图像模型需要在火山控制台创建 endpoint 后启用
+  model_type: image
+  models:
+    - Doubao-Seedance-1.5-pro
+    - Doubao-Seedance-1.0-pro-fast
+    - Doubao-Seed3D-2.0
+    - Hitem3D-2.0
+
+volc_image_50:
+  daily_limit: 50
+  base_weight: 0.9
+  priority: 4
+  endpoint: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+  provider: volc_ark
+  disabled: true   # 图像模型需要在火山控制台创建 endpoint 后启用
+  model_type: text_to_image
+  models:
+    - Doubao-Seedream-5.0-lite
+    - Doubao-Seedream-4.5
+
+volc_image_150k:
+  daily_limit: 150000
+  base_weight: 0.7
+  priority: 3
+  endpoint: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+  provider: volc_ark
+  disabled: true   # 图像模型需要在火山控制台创建 endpoint 后启用
+  model_type: image_3d
+  models:
+    - Hyper3D-Gen2
+
+# 百炼 DashScope - 文本模型（每日 1,000,000 tokens）
+dashscope_1m:
+  daily_limit: 1000000
+  base_weight: 1.0
+  priority: 2
+  endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  provider: dashscope
+  models:
+    - qwen3.7-plus
+    - qwen-math-turbo
+    - qwen3-vl-235b-a22b-thinking
+    - qwen3-vl-32b-thinking
+    - qwen-plus-2025-07-28
+    - deepseek-r1-distill-qwen-7b
+    - glm-5
+    - qwen-max
+    - qwen-mt-flash
+    - qwen3-vl-30b-a3b-thinking
+    - qwen3.6-plus
+    - qwen-vl-ocr-latest
+    - qwen3-32b
+    - qwen3.6-flash
+    - deepseek-r1-distill-qwen-32b
+    - qwen-vl-plus
+    - qwen-long
+    - qwen3.5-35b-a3b
+    - glm-4.5-air
+    - qwen3-coder-480b-a35b-instruct
+    - qwen3-vl-8b-thinking
+    - qwen3-coder-plus
+    - qwen-vl-ocr-1028
+    - qwen3-max-preview
+    - qwen3.5-flash-2026-02-23
+    - qwen3-vl-flash-2025-10-15
+    - qwen3-8b
+    - qwen-plus-0112
+    - qwen-math-plus
+    - gui-plus
+    - qwen3-coder-flash
+    - qvq-max
+    - qwen3-next-80b-a3b-thinking
+    - qwen3.5-27b
+    - tongyi-xiaomi-analysis-flash
+    - deepseek-r1
+    - qwen3-vl-flash
+    - qwen-math-plus-0919
+    - qwen3-14b
+    - MiniMax-M2.5
+    - qwen-plus-2025-12-01
+    - qwen3-max-2025-09-23
+    - qwen-plus-character
+    - deepseek-v4-pro
+    - qwen-flash-character
+    - MiniMax-M2.1
+    - deepseek-r1-distill-qwen-14b
+    - qwen3-30b-a3b-instruct-2507
+    - qwen-flash
+    - qwen-flash-2025-07-28
+    - qwen3-235b-a22b-instruct-2507
+    - qwen3-coder-plus-2025-07-22
+    - qwen3.5-plus-2026-04-20
+    - kimi-k2.5
+    - qwen3.7-max
+    - qwen-vl-ocr
+    - kimi-k2.6
+    - qwen-long-latest
+    - qwen-vl-ocr-2025-04-13
+    - qwen-plus-1220
+    - qwen3.5-122b-a10b
+    - qwen-vl-ocr-2025-11-20
+    - tongyi-intent-detect-v3
+    - qwen3-max
+    - qwen3.5-plus-2026-02-15
+    - qwen3-235b-a22b-thinking-2507
+    - qwen3.7-max-2026-06-08
+    - glm-5.1
+    - qwen3.7-max-preview
+    - kimi-k2-thinking
+    - qwen3.6-max-preview
+    - deepseek-v3.1
+    - qwen3.5-397b-a17b
+    - deepseek-v3.2
+    - qwen3-coder-next
+    - qwen-math-plus-0816
+    - tongyi-xiaomi-analysis-pro
+    - qwen3.5-flash
+    - deepseek-v4-flash
+    - qwen3-30b-a3b-thinking-2507
+    - qwen3-coder-plus-2025-09-23
+    - qwen-plus-latest
+    - qwen3-max-2026-01-23
+    - Moonshot-Kimi-K2-Instruct
+    - qwen-plus-2025-09-11
+    - qwen3.7-max-2026-05-20
+    - qwen3.7-plus-2026-05-26
+    - qwen3-coder-30b-a3b-instruct
+    - qwen-flash-character-2026-02-26
+    - qwen3.6-27b
+    - qwen3-235b-a22b
+    - qwen-coder-plus
+    - qwen-mt-lite
+    - qwen-plus-2025-01-25
+    - qwen3.6-flash-2026-04-16
+    - qwen3.7-max-2026-05-17
+    - glm-4.5
+    - qwen3-30b-a3b
+    - qwen-mt-plus
+    - glm-4.6
+    - qwen-coder-turbo
+    - glm-4.7
+    - qwen3-coder-flash-2025-07-28
+    - qvq-plus
+    - gui-plus-2026-02-26
+    - deepseek-v3
+    - qwen-plus-2025-04-28
+    - qwen-mt-turbo
+    - qwen3.5-plus
+    - qwen-long-2025-01-25
+    - qwen3.6-35b-a3b
+    - qwen-plus-2025-07-14
+    - qwen-math-plus-latest
+    - qwq-plus
+    - qwen3.6-plus-2026-04-02
+    - deepseek-r1-0528
+    - qwen3-next-80b-a3b-instruct
+    - deepseek-v3.2-exp
+    - deepseek-r1-distill-llama-70b
+
+# 百炼 DashScope - 视觉模型（每日 1,000,000 tokens）- 支持图像理解与生成
+dashscope_vl:
+  daily_limit: 1000000
+  base_weight: 1.5
+  priority: 4
+  endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  provider: dashscope
+  model_type: image
+  models:
+    - qwen3-vl-plus-2025-09-23
+    - qwen3-vl-32b-instruct
+    - qwen3-vl-flash-2026-01-22
+    - qwen-vl-max
+    - qwen3-vl-plus
+    - qwen3-vl-30b-a3b-instruct
+    - qwen3-vl-235b-a22b-instruct
+    - qwen3-vl-8b-instruct
+    - qwen-vl-ocr-2025-08-28
+    - qwen3-vl-plus-2025-12-19
+
+# 百炼 DashScope - 图像生成模型（每日200张图）- 文生图/图生图
+dashscope_image_gen:
+  daily_limit: 200
+  base_weight: 2.0
+  priority: 5
+  endpoint: https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis
+  provider: dashscope_image
+  disabled: false
+  model_type: text_to_image
+  models:
+    - qwen-image-plus
+    - wanx-v1
+
+# 百炼 DashScope - 高额度模型（每日 2,000,000 tokens）
+dashscope_2m:
+  daily_limit: 2000000
+  base_weight: 1.2
+  priority: 3
+  endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  provider: dashscope
+  models:
+    - llama-4-scout-17b-16e-instruct
+    - llama-4-maverick-17b-128e-instruct

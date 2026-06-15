@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 聊天 · 免费模型路由</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 920px;
+    height: 92vh;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    padding: 16px 24px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .meta { font-size: 12px; opacity: 0.85; }
+
+  .chat-main { flex: 1; display: flex; overflow: hidden; }
+
+  /* ========== 聊天区域 ========== */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f5f6fa;
+  }
+  .messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg {
+    display: flex;
+    max-width: 82%;
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+  .msg.user { align-self: flex-end; }
+  .msg.ai   { align-self: flex-start; }
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.6;
+    font-size: 14.5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.user .bubble {
+    background: #4f46e5;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.ai .bubble {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 4px;
+    color: #1f2937;
+  }
+  .msg-info {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+  .thinking {
+    display: inline-block;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+  .thinking::after {
+    content: "";
+    animation: dots 1.2s steps(4,end) infinite;
+  }
+  @keyframes dots {
+    0%,20% { content: "";}
+    40%   { content: ".";}
+    60%   { content: "..";}
+    80%,100% { content: "...";}
+  }
+
+  /* 输入区 */
+  .input-bar {
+    padding: 14px 20px 18px;
+    background: #fff;
+    border-top: 1px solid #eef0f5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .input-bar textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    outline: none;
+    max-height: 160px;
+    transition: border-color .15s;
+  }
+  .input-bar textarea:focus { border-color: #4f46e5; }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .row { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #6b7280;}
+  .row select, .row input {
+    font-size: 12px;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .send-btn {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .15s, transform .1s;
+    min-width: 70px;
+  }
+  .send-btn:hover:not(:disabled) { background: #4338ca; }
+  .send-btn:active:not(:disabled) { transform: scale(.97); }
+  .send-btn:disabled { background: #a5a7b3; cursor: not-allowed; }
+
+  /* ========== 右侧用量面板 ========== */
+  .sidebar {
+    width: 260px;
+    border-left: 1px solid #eef0f5;
+    background: #fafbff;
+    padding: 16px;
+    overflow-y: auto;
+    font-size: 13px;
+  }
+  .sidebar h3 { font-size: 13px; color: #4f46e5; margin-bottom: 10px; font-weight: 600; }
+  .stat-card {
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .stat-line { display: flex; justify-content: space-between; margin: 4px 0; font-size: 12.5px;}
+  .stat-line strong { color: #111; }
+  .progress-track {
+    height: 8px;
+    background: #eef0f5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 6px 0 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+    transition: width .4s;
+  }
+  .model-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    margin-bottom: 2px;
+  }
+  .model-item:nth-child(odd) { background: #f3f4f6; }
+  .model-item.blocked { color: #ef4444; font-weight: 600; }
+  .model-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;}
+  .model-ratio { color: #374151; font-variant-numeric: tabular-nums; }
+
+  /* 滚动条美化 */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+  /* 窄屏：隐藏侧边栏 */
+  @media (max-width: 720px) {
+    .sidebar { display: none; }
+    header h1 { font-size: 15px;}
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>🤖 AI 聊天 · 免费模型路由</h1>
+        <div class="meta" id="headerMeta">正在连接...</div>
+      </div>
+      <button class="send-btn" style="background:rgba(255,255,255,0.2); min-width:auto; padding:6px 14px; font-size:12px;"
+              onclick="refreshSummary()">🔄 刷新用量</button>
+    </header>
+
+    <div class="chat-main">
+      <div class="chat-area">
+        <div class="messages" id="messages">
+          <div class="msg ai">
+            <div>
+              <div class="bubble">你好！我接入了火山 + 百炼 ~170 个免费模型，会自动选择额度最充足的模型回答你。有什么想问的？</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+            <textarea id="inputBox" rows="2" placeholder="输入问题，回车发送 (Shift+回车 = 换行)... 支持图片生成：画一幅/生成图片/照片/3D模型等"></textarea>
+            <div id="imagePreview" style="display:none; margin-top:4px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <img id="previewImg" style="width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ddd;"/>
+                <span style="font-size:12px; color:#666;">已选择参考图片（可用于图生图或图片理解）</span>
+                <button onclick="clearImage()" style="padding:4px 10px; font-size:12px; border:1px solid #ddd; background:white; border-radius:6px; cursor:pointer;">清除</button>
+              </div>
+            </div>
+          </div>
+          <div class="controls">
+            <div class="row">
+              <label>模型类型</label>
+              <select id="modelType">
+                <option value="">智能识别</option>
+                <option value="text">文本问答</option>
+                <option value="image">图片生成</option>
+                <option value="image_3d">3D模型</option>
+                <option value="video">视频动画</option>
+              </select>
+              <label>平台</label>
+              <select id="preferProvider">
+                <option value="">自动</option>
+                <option value="volc_ark">火山</option>
+                <option value="dashscope">百炼</option>
+              </select>
+            </div>
+            <div class="row" style="justify-content:flex-end;">
+              <label>温度</label>
+              <input type="number" id="temp" value="0.7" min="0" max="2" step="0.1" style="width:48px"/>
+              <input type="file" id="imageInput" accept="image/*" style="display:none;"/>
+              <button onclick="document.getElementById('imageInput').click()" 
+                      style="padding:4px 10px; font-size:12px; border:1px solid #ddd; background:white; border-radius:6px; cursor:pointer;">📎图片</button>
+              <button class="send-btn" id="sendBtn" style="padding:6px 14px;">发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <h3>📊 今日用量 <small id="todayDate"></small></h3>
+        <div class="stat-card">
+          <div class="stat-line"><span>总 Tokens 用量</span><strong id="statUsed">0</strong></div>
+          <div class="stat-line"><span>免费额度</span><strong id="statLimit">0</strong></div>
+          <div class="stat-line"><span>使用率</span><strong id="statRatio">0%</strong></div>
+          <div class="stat-line"><span>模型总数 / 已用完</span><strong id="statModelCount">0 / 0</strong></div>
+          <div class="progress-track"><div class="progress-fill" id="statProgress" style="width:0%"></div></div>
+        </div>
+
+        <h3>🔥 消耗最多的模型 (Top)</h3>
+        <div id="modelList" style="margin-top:8px;"></div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+// ========== 工具函数 ==========
+const $ = (id) => document.getElementById(id);
+const messagesEl = $("messages");
+
+function addMessage(role, text, extraInfo = "", images = null) {
+  const msg = document.createElement("div");
+  msg.className = "msg " + role;
+  const inner = document.createElement("div");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  
+  if (images && images.length > 0) {
+    // 图片显示
+    const imgContainer = document.createElement("div");
+    imgContainer.style.display = "flex";
+    imgContainer.style.flexWrap = "wrap";
+    imgContainer.style.gap = "8px";
+    images.forEach(imgUrl => {
+      const img = document.createElement("img");
+      img.src = imgUrl;
+      img.style.maxWidth = "200px";
+      img.style.maxHeight = "200px";
+      img.style.borderRadius = "8px";
+      img.style.objectFit = "contain";
+      img.onclick = () => window.open(imgUrl, "_blank");
+      img.style.cursor = "pointer";
+      imgContainer.appendChild(img);
+    });
+    bubble.appendChild(imgContainer);
+    if (text) {
+      const textDiv = document.createElement("div");
+      textDiv.style.marginTop = "8px";
+      textDiv.textContent = text;
+      bubble.appendChild(textDiv);
+    }
+  } else {
+    bubble.textContent = text;
+  }
+  
+  inner.appendChild(bubble);
+  if (extraInfo) {
+    const info = document.createElement("div");
+    info.className = "msg-info";
+    info.textContent = extraInfo;
+    inner.appendChild(info);
+  }
+  msg.appendChild(inner);
+  messagesEl.appendChild(msg);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return bubble;
+}
+
+function formatNum(n) {
+  return (n || 0).toLocaleString("zh-CN");
+}
+
+function getIntentLabel(intent) {
+  const labels = {
+    "text": "文本",
+    "image": "🖼图片",
+    "image_3d": "🧊3D模型",
+    "video": "🎬视频"
+  };
+  return labels[intent] || intent;
+}
+
+// ========== 用量摘要 ==========
+async function refreshSummary() {
+  try {
+    const res = await fetch("/api/summary", { cache: "no-store" });
+    const data = await res.json();
+    $("todayDate").textContent = data.date || "";
+    $("statUsed").textContent = formatNum(data.total_tokens_used) + " tokens";
+    $("statLimit").textContent = formatNum(data.total_tokens_limit) + " tokens";
+    $("statRatio").textContent = data.total_ratio.toFixed(2) + "%";
+    $("statModelCount").textContent = data.total_models + " / " + data.blocked_count;
+    $("statProgress").style.width = Math.min(100, data.total_ratio) + "%";
+
+    const list = $("modelList");
+    list.innerHTML = "";
+    (data.models || []).slice(0, 25).forEach(m => {
+      const div = document.createElement("div");
+      div.className = "model-item" + (m.blocked ? " blocked" : "");
+      div.innerHTML = `<span class="model-name" title="${m.name}">${m.name}</span>
+                       <span class="model-ratio">${m.ratio.toFixed(1)}%${m.blocked ? " 🚫" : ""}</span>`;
+      list.appendChild(div);
+    });
+    $("headerMeta").textContent = `共 ${data.total_models} 个模型 · 额度充足 ✓`;
+  } catch (e) {
+    $("headerMeta").textContent = "⚠️ 无法读取用量";
+  }
+}
+
+// ========== 发送消息 ==========
+const sendBtn = $("sendBtn");
+const inputBox = $("inputBox");
+
+inputBox.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+sendBtn.addEventListener("click", sendMessage);
+
+// 存储当前上传的图片 base64
+let uploadedImage = null;
+
+// 图片选择
+document.getElementById("imageInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const base64 = evt.target.result;
+    uploadedImage = base64.split(",")[1]; // 去掉前缀
+    $("imagePreview").style.display = "block";
+    $("previewImg").src = base64;
+  };
+  reader.readAsDataURL(file);
+});
+
+function clearImage() {
+  uploadedImage = null;
+  $("imagePreview").style.display = "none";
+  $("imageInput").value = "";
+}
+
+async function sendMessage() {
+  const prompt = inputBox.value.trim();
+  
+  // 如果有图片但没文字，默认问描述
+  if (uploadedImage && !prompt) {
+    inputBox.value = "请描述这张图片的内容";
+    sendMessage();
+    return;
+  }
+  
+  if (!prompt && !uploadedImage) return;
+
+  // 检查是否需要图像生成模式（用户选了image或输入包含生成图片关键词）
+  const modelType = $("modelType").value;
+  const isImageMode = (modelType === "image" || modelType === "image_3d" || 
+                       modelType === "video" ||
+                       /画|生成图片|图片|设计|照片|图像|3d|三维/i.test(prompt)) 
+                      && !uploadedImage;
+
+  // 用户消息
+  let userContent = prompt;
+  if (uploadedImage) {
+    userContent = "[图片] " + prompt;
+  }
+  addMessage("user", userContent);
+  inputBox.value = "";
+  sendBtn.disabled = true;
+
+  // AI 占位（带"思考中"）
+  const aiBubble = addMessage("ai", "");
+  aiBubble.innerHTML = '<span class="thinking">处理中...</span>';
+  const infoEl = document.createElement("div");
+  infoEl.className = "msg-info";
+  aiBubble.parentElement.appendChild(infoEl);
+
+  const temp = parseFloat($("temp").value) || 0.7;
+
+  try {
+    if (isImageMode) {
+      // 图像生成模式
+      await handleImageGeneration(prompt, aiBubble, infoEl);
+    } else if (uploadedImage) {
+      // 图片理解模式
+      await handleImageAnalysis(prompt, aiBubble, infoEl, temp);
+    } else {
+      // 文本对话模式
+      await handleTextChat(prompt, aiBubble, infoEl, temp);
+    }
+  } catch (err) {
+    aiBubble.textContent = "❌ 网络错误：" + err.message;
+  } finally {
+    sendBtn.disabled = false;
+    refreshSummary();
+    inputBox.focus();
+    clearImage(); // 发送完清除图片
+  }
+}
+
+async function handleImageGeneration(prompt, aiBubble, infoEl) {
+  try {
+    const resp = await fetch("/api/generate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        prompt: prompt,
+        size: "1024*1024"
+      }),
+    });
+
+    const data = await resp.json();
+    
+    if (data.success && data.image_urls && data.image_urls.length > 0) {
+      // 显示图片
+      const imagesHtml = data.image_urls.join("|");
+      // 替换显示
+      const bubble = aiBubble;
+      bubble.innerHTML = "";
+      
+      const imgContainer = document.createElement("div");
+      imgContainer.style.display = "flex";
+      imgContainer.style.flexWrap = "wrap";
+      imgContainer.style.gap = "8px";
+      
+      data.image_urls.forEach(imgUrl => {
+        const img = document.createElement("img");
+        img.src = imgUrl;
+        img.style.maxWidth = "250px";
+        img.style.maxHeight = "250px";
+        img.style.borderRadius = "8px";
+        img.style.objectFit = "contain";
+        img.onclick = () => window.open(imgUrl, "_blank");
+        img.style.cursor = "pointer";
+        imgContainer.appendChild(img);
+      });
+      bubble.appendChild(imgContainer);
+      
+      const desc = document.createElement("div");
+      desc.style.marginTop = "8px";
+      desc.textContent = `已为你生成图片！描述：${prompt}`;
+      bubble.appendChild(desc);
+      
+      infoEl.textContent = `[${data.provider} · ${data.model}] ${formatNum(data.tokens_used)} 张 · ${data.cost_ms}ms`;
+    } else {
+      aiBubble.textContent = "❌ " + (data.error || "图片生成失败");
+    }
+  } catch (err) {
+    aiBubble.textContent = "❌ 网络错误：" + err.message;
+  }
+}
+
+async function handleImageAnalysis(prompt, aiBubble, infoEl, temp) {
+  try {
+    const question = prompt || "请描述这张图片的内容";
+    
+    // 调用视觉模型分析图片
+    const resp = await fetch("/api/upload-and-analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: uploadedImage,
+        question: question
+      }),
+    });
+
+    const data = await resp.json();
+    if (data.success) {
+      aiBubble.textContent = data.response || "图片分析完成";
+      infoEl.textContent = `[${data.provider || "dashscope"} · ${data.model || "vl"}] ${formatNum(data.total_tokens || 0)} tokens`;
+    } else {
+      aiBubble.textContent = "❌ " + (data.error || "图片分析失败");
+    }
+  } catch (err) {
+    aiBubble.textContent = "❌ 网络错误：" + err.message;
+  }
+}
+
+async function handleTextChat(prompt, aiBubble, infoEl, temp) {
+  const preferProvider = $("preferProvider").value || null;
+  const modelType = $("modelType").value || null;
+  const detectIntent = !modelType;
+
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        prompt, 
+        stream: true, 
+        temperature: temp, 
+        prefer_provider: preferProvider,
+        model_type: modelType,
+        detect_intent: detectIntent
+      }),
+    });
+
+    if (!resp.ok || !resp.body) {
+      const data = await resp.json();
+      if (data.success) {
+        aiBubble.textContent = data.response;
+        const intentTag = data.intent && data.intent !== "text" ? ` · ${getIntentLabel(data.intent)}` : "";
+        infoEl.textContent = `[${data.provider} · ${data.model}${intentTag}] ${formatNum(data.tokens_used)} tokens · ${data.cost_ms}ms`;
+      } else {
+        aiBubble.textContent = "❌ " + (data.error || "请求失败");
+      }
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
+    let buf = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+
+      const parts = buf.split("\n\n");
+      buf = parts.pop();
+      for (const part of parts) {
+        if (!part.trim().startsWith("data:")) continue;
+        const jsonStr = part.replace(/^data:\s*/, "").trim();
+        if (!jsonStr) continue;
+        try {
+          const obj = JSON.parse(jsonStr);
+          if (obj.type === "chunk") {
+            if (fullText === "") aiBubble.textContent = "";
+            fullText += obj.content;
+            aiBubble.textContent = fullText;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          } else if (obj.type === "done") {
+            const intentTag = obj.intent && obj.intent !== "text" ? ` · ${getIntentLabel(obj.intent)}` : "";
+            infoEl.textContent = `[${obj.provider} · ${obj.model}${intentTag}] ${formatNum(obj.tokens_used)} tokens · ${obj.cost_ms}ms`;
+          } else if (obj.type === "error") {
+            aiBubble.textContent = "❌ " + obj.error;
+            infoEl.textContent = "尝试过: " + (obj.attempted_models || []).slice(0, 3).join(", ");
+          }
+        } catch (e) { /* 忽略解析失败 */ }
+      }
+    }
+  } catch (err) {
+    aiBubble.textContent = "❌ 网络错误：" + err.message;
+  }
+}
+
+// 启动
+refreshSummary();
+setInterval(refreshSummary, 60000); // 每 60 秒刷新一次用量
+</script>
+</body>
+</html>
