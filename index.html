@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 聊天助手</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+  .app {
+    width: 100%;
+    max-width: 920px;
+    height: 92vh;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    padding: 16px 24px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .meta { font-size: 12px; opacity: 0.85; }
+  
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f5f6fa;
+    overflow: hidden;
+  }
+  .messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg {
+    display: flex;
+    max-width: 82%;
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+  .msg.user { align-self: flex-end; }
+  .msg.ai   { align-self: flex-start; }
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.6;
+    font-size: 14.5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.user .bubble {
+    background: #4f46e5;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.ai .bubble {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 4px;
+    color: #1f2937;
+  }
+  .msg-info {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+  .thinking {
+    display: inline-block;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+  .thinking::after {
+    content: "";
+    animation: dots 1.5s infinite;
+  }
+  @keyframes dots { 0%, 20% { content: "."; } 40% { content: ".."; } 60% { content: "..."; } 80%, 100% { content: ""; } }
+
+  /* ========== 输入区域 ========== */
+  .input-area {
+    padding: 16px;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .input-tools {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .tool-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: #f3f4f6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all .2s;
+  }
+  .tool-btn:hover { background: #e5e7eb; }
+  .tool-btn:active { transform: scale(0.95); }
+  .input-box-wrapper {
+    flex: 1;
+    position: relative;
+  }
+  .input-box {
+    width: 100%;
+    min-height: 40px;
+    max-height: 180px;
+    padding: 10px 40px 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14.5px;
+    resize: none;
+    outline: none;
+    transition: border-color .2s;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  .input-box:focus { border-color: #4f46e5; }
+  .send-btn {
+    width: 80px;
+    height: 40px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .2s;
+  }
+  .send-btn:hover { opacity: 0.9; }
+  .send-btn:active { transform: scale(0.98); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ========== 图片预览 ========== */
+  #imagePreview {
+    display: none;
+    position: relative;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+  }
+  #previewImg {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 4px;
+  }
+  #clearImage {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ========== 响应式 ========== */
+  @media (max-width: 640px) {
+    .msg { max-width: 95%; }
+    .bubble { font-size: 14px; padding: 8px 12px; }
+    header h1 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🤖 AI 聊天助手</h1>
+      <div class="meta">免费模型 · 自动切换</div>
+    </header>
+    
+    <div class="chat-area">
+      <div class="messages" id="messages">
+        <div class="msg ai">
+          <div class="bubble">你好！我是你的 AI 助手。我可以帮你：
+<br>• 回答问题
+<br>• 分析图片内容
+<br>• 生成图片
+<br>
+<br>上传图片后输入问题，我可以帮你分析图片内容。</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="input-area">
+      <div id="imagePreview">
+        <img id="previewImg" />
+        <button id="clearImage" onclick="clearImage()">×</button>
+      </div>
+      
+      <div class="input-row">
+        <div class="input-tools">
+          <button class="tool-btn" onclick="selectImage()" title="上传图片">📎</button>
+        </div>
+        <div class="input-box-wrapper">
+          <textarea id="inputBox" class="input-box" placeholder="输入消息或上传图片..." 
+                    onkeydown="handleKeyDown(event)"></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+      </div>
+      <input type="file" id="imageInput" accept="image/*" style="display:none" 
+             onchange="handleImageSelect(event)" />
+    </div>
+  </div>
+
+<script>
+let uploadedImage = null;
+
+// 选择图片
+function selectImage() {
+  document.getElementById('imageInput').click();
+}
+
+// 处理图片选择
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const base64 = evt.target.result;
+    uploadedImage = base64.split(",")[1];
+    document.getElementById('imagePreview').style.display = "block";
+    document.getElementById('previewImg').src = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
+// 清除图片
+function clearImage() {
+  uploadedImage = null;
+  document.getElementById('imagePreview').style.display = "none";
+  document.getElementById('imageInput').value = "";
+}
+
+// 发送消息
+async function sendMessage() {
+  const inputBox = document.getElementById('inputBox');
+  const sendBtn = document.getElementById('sendBtn');
+  const prompt = inputBox.value.trim();
+  
+  if (!prompt && !uploadedImage) return;
+  
+  sendBtn.disabled = true;
+  
+  // 添加用户消息
+  addMessage(prompt, 'user');
+  
+  // 清空输入
+  inputBox.value = "";
+  
+  // AI 思考中
+  const aiMsg = addMessage('', 'ai');
+  const bubble = aiMsg.querySelector('.bubble');
+  bubble.innerHTML = '<span class="thinking">正在思考</span>';
+  
+  try {
+    let result;
+    
+    if (uploadedImage) {
+      // 图片分析模式
+      result = await fetch('/api/upload-and-analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: uploadedImage,
+          question: prompt || '请描述这张图片'
+        })
+      }).then(r => r.json());
+      clearImage();
+    } else if (prompt.includes('生成') || prompt.includes('图片') || prompt.includes('画')) {
+      // 图片生成模式
+      result = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt,
+          size: '1024*1024'
+        })
+      }).then(r => r.json());
+    } else {
+      // 普通聊天模式
+      result = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt,
+          temperature: 0.7
+        })
+      }).then(r => r.json());
+    }
+    
+    if (result.success) {
+      let content = result.response;
+      if (result.image_urls && result.image_urls.length > 0) {
+        content = '🎨 图片已生成：\n' + result.image_urls.join('\n');
+        result.image_urls.forEach(url => {
+          content += `<br><img src="${url}" style="max-width:100%;border-radius:8px;margin-top:8px;" />`;
+        });
+      }
+      bubble.innerHTML = content;
+    } else {
+      bubble.textContent = '❌ ' + (result.error || '请求失败');
+    }
+  } catch (error) {
+    bubble.textContent = '❌ 网络错误：' + error.message;
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+// 添加消息
+function addMessage(text, type) {
+  const messages = document.getElementById('messages');
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + type;
+  msg.innerHTML = `<div class="bubble">${text || '&nbsp;'}</div><div class="msg-info"></div>`;
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
+  return msg;
+}
+
+// 键盘事件
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+</script>
+</body>
+</html>
