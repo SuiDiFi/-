@@ -21,4 +21,4 @@ webbrowser.open('http://127.0.0.1:8765')
 
 # 启动 Flask 服务
 from app import app
-app.run(host='127.0.0.1', port=8765, debug=True, threaded=True, use_reloader=False)
+app.run(host='127.0.0.1', port=8765, debug=False, threaded=True, use_reloader=False)

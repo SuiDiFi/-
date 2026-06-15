@@ -983,23 +983,23 @@
     "qwen3-vl-flash-2026-01-22": {
       "provider": "dashscope",
       "daily_limit": 1000000,
-      "tokens_used": 0,
-      "calls": 0,
-      "last_call": null,
+      "tokens_used": 230,
+      "calls": 1,
+      "last_call": "2026-06-15 12:32:33",
       "blocked": false,
       "block_reason": null,
-      "avg_output_tokens": 0,
+      "avg_output_tokens": 187,
       "_output_accum": 0
     },
     "qwen-vl-max": {
       "provider": "dashscope",
       "daily_limit": 1000000,
-      "tokens_used": 0,
-      "calls": 0,
-      "last_call": null,
+      "tokens_used": 66,
+      "calls": 1,
+      "last_call": "2026-06-15 12:32:51",
       "blocked": false,
       "block_reason": null,
-      "avg_output_tokens": 0,
+      "avg_output_tokens": 23,
       "_output_accum": 0
     },
     "qwen3.7-max-2026-05-20": {
@@ -1137,12 +1137,12 @@
     "qwen3-vl-plus": {
       "provider": "dashscope",
       "daily_limit": 1000000,
-      "tokens_used": 0,
-      "calls": 0,
-      "last_call": null,
+      "tokens_used": 175,
+      "calls": 1,
+      "last_call": "2026-06-15 12:33:11",
       "blocked": false,
       "block_reason": null,
-      "avg_output_tokens": 0,
+      "avg_output_tokens": 132,
       "_output_accum": 0
     },
     "qwen3.7-max-2026-05-17": {
