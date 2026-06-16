@@ -42,7 +42,7 @@ async function callDashScopeImage(prompt, size, apiKey) {
       body: JSON.stringify({
         model: 'qwen-image-plus',
         input: { prompt },
-        parameters: { size }
+        parameters: { size, use_raw_prompt: true }
       })
     });
     
